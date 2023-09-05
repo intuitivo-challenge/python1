@@ -1,0 +1,61 @@
+name : Deployment ${GITHUB_REPOSITORY}
+
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+      - qa
+      - prod
+    types : [closed]
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run Scripts'
+        default: $env:GITHUB_HEAD_REF
+        required: true
+        type: choice
+        options:
+        - dev
+        - qa
+        - prod
+env:
+  ENV: ${{ github.ref_name }}  #referencia a la branch en que se ejecuta el worklow
+# ===========================================================================
+
+jobs:
+  
+  build:
+    if: workflow_dispatch || ${{ github.event.pull_request.merged }}
+    runs-on: ubuntu-latest
+    
+    steps:
+        #SELECTING ENVIRONMENT FOR DEPLOYMENT
+      - name : Selecting Env
+        run: |
+          echo "Environment: $ENV "
+
+      #Download code to the runner
+      - name : Seting up
+        uses: actions/checkout@v3
+
+      - name: Run Script Build
+        run: |
+          chmod +x ./build.sh
+          bash ${GITHUB_WORKSPACE}/build.sh
+        continue-on-error: true
+    
+
+      - name: Run Script Test
+        run: |
+          chmod +x ./test.sh
+          bash ${GITHUB_WORKSPACE}/test.sh
+        continue-on-error: true     
+       
+
+      - name : Run Script Deploy
+        run: |
+          chmod +x ./deploy.sh
+          bash ${GITHUB_WORKSPACE}/deploy.sh
+        continue-on-error: true
