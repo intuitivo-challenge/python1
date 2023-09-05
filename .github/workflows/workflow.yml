@@ -1,7 +1,7 @@
 name : Deployment ${GITHUB_REPOSITORY}
 
 on:
-  branch:
+  branches:
   pull_request:
     branches:
       - main
